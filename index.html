@@ -4,8 +4,28 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>elaina.cloud</title>
+  <link rel="icon" href="https://files.catbox.moe/1p44ew.jpg" type="image/png" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet"/>
+  <script src="https://unpkg.com/lucide@latest"></script>
   <style>
+    :root {
+      --bg: #121212;
+      --card: #1e1e1e;
+      --text: #ffffff;
+      --input: #2c2c2c;
+      --primary: #6c5ce7;
+      --hover: #5a4bd9;
+    }
+
+    .light-mode {
+      --bg: #f5f5f5;
+      --card: #ffffffdd;
+      --text: #111;
+      --input: #e0e0e0;
+      --primary: #6c5ce7;
+      --hover: #5a4bd9;
+    }
+
     * {
       margin: 0;
       padding: 0;
@@ -14,24 +34,28 @@
 
     body {
       font-family: 'Poppins', sans-serif;
-      background: linear-gradient(to right top, #a18cd1, #fbc2eb);
+      background: var(--bg);
+      color: var(--text);
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 20px;
+      transition: all 0.3s ease;
+      position: relative;
     }
 
     .card {
-      background: rgba(255, 255, 255, 0.2);
+      background: var(--card);
       backdrop-filter: blur(15px);
       -webkit-backdrop-filter: blur(15px);
       border-radius: 20px;
       padding: 30px;
       max-width: 500px;
       width: 100%;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
       animation: fadeIn 0.6s ease forwards;
+      transition: all 0.3s ease;
     }
 
     @keyframes fadeIn {
@@ -43,11 +67,10 @@
       text-align: center;
       font-size: 26px;
       font-weight: 600;
-      color: white;
       margin-bottom: 25px;
     }
 
-    textarea {
+    input, textarea {
       width: 100%;
       padding: 15px;
       border-radius: 12px;
@@ -55,16 +78,18 @@
       font-size: 16px;
       resize: none;
       outline: none;
-      background: rgba(255, 255, 255, 0.4);
-      color: #111;
+      background: var(--input);
+      color: var(--text);
       font-family: 'Poppins', sans-serif;
+      margin-bottom: 12px;
+      transition: background 0.3s ease;
     }
 
-    button {
-      margin-top: 20px;
+    button.send {
+      margin-top: 10px;
       width: 100%;
       padding: 14px;
-      background: #6c5ce7;
+      background: var(--primary);
       color: white;
       font-weight: 600;
       font-size: 16px;
@@ -74,82 +99,89 @@
       transition: background 0.3s ease;
     }
 
-    button:hover {
-      background: #5a4bd9;
+    button.send:hover {
+      background: var(--hover);
     }
 
     .note {
       margin-top: 20px;
       text-align: center;
       font-size: 13px;
-      color: white;
       opacity: 0.8;
+    }
+
+    .toggle-mode {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: var(--card);
+      color: var(--text);
+      border: none;
+      padding: 10px;
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      transition: all 0.3s ease;
+    }
+
+    .toggle-mode:hover {
+      transform: rotate(15deg);
+    }
+
+    .toggle-mode svg {
+      width: 20px;
+      height: 20px;
     }
   </style>
 </head>
-<head>
-  <link rel="icon" href="https://files.catbox.moe/1p44ew.jpg" type="image/png" />
-</head>
-</head>
 <body>
+  <button class="toggle-mode" onclick="toggleMode()" id="themeToggle">
+    <i data-lucide="moon" id="iconMode"></i>
+  </button>
+
   <div class="card">
     <h1>Kirim Pendapatmu</h1>
+    <input type="text" id="nama" placeholder="Nama kamu..." />
+    <input type="text" id="kontak" placeholder="Email atau No HP..." />
     <textarea id="input" rows="5" placeholder="Tulis pendapat kamu di sini..."></textarea>
-    <button onclick="kirim()">Kirim Sekarang</button>
+    <button class="send" onclick="kirim()">Kirim Sekarang</button>
     <div class="note">© 2025 Elaina.cloud. All rights reserved</div>
   </div>
 
-<script>
-  function kirim() {
-    const pesan = document.getElementById("input").value.trim();
-    if (!pesan) return alert("Isi dulu pendapatmu yaa!");
+  <script>
+    lucide.createIcons();
 
-    // buat tanggal sekarang dalam format YYYY-MM-DD HH:mm
-    const now = new Date();
-    const tanggal = now.toLocaleString('id-ID', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    function kirim() {
+      const nama = document.getElementById("nama").value.trim() || "Anonim";
+      const kontak = document.getElementById("kontak").value.trim() || "Tidak diisi";
+      const pesan = document.getElementById("input").value.trim();
+      if (!pesan) return alert("Isi dulu pendapatmu yaa!");
 
-    fetch("https://discord.com/api/webhooks/1374077375486234654/xjlwjAvLGhOMVK4pWhuAMNwjImo8gNwYcAi9wJ50ylfEd4EQ16LMSEDrLf_DpmUJ-Ciz", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        embeds: [
-          {
-            title: "Pendapat Baru",
-            color: 0x6C5CE7, // ungu keren
-            fields: [
-              { name: "Name", value: "Anonim", inline: true },
-              { name: "Tanggal", value: tanggal, inline: true },
-              { name: "Pesan", value: pesan }
-            ],
-            footer: {
-              text: "elaina.cloud"
-            },
-            timestamp: new Date().toISOString()
+      fetch("/api/send-feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nama, kontak, pesan })
+      }).then(res => res.json())
+        .then(data => {
+          if (data.message === "Pendapat terkirim") {
+            alert("Pendapatmu terkirim!");
+            document.getElementById("nama").value = "";
+            document.getElementById("kontak").value = "";
+            document.getElementById("input").value = "";
+          } else {
+            alert("Gagal kirim pendapat: " + data.message);
           }
-        ]
-      })
-    })
-    .then(res => {
-      if (res.ok) {
-        alert("Pendapatmu terkirim!");
-        document.getElementById("input").value = "";
-      } else {
-        alert("Gagal kirim pendapat!");
-      }
-    })
-    .catch(err => {
-      console.error(err);
-      alert("Terjadi kesalahan jaringan.");
-    });
-  }
-</script>
+        })
+        .catch(() => alert("Terjadi kesalahan jaringan."));
+    }
+
+    function toggleMode() {
+      const body = document.body;
+      const icon = document.getElementById("iconMode");
+      body.classList.toggle("light-mode");
+      icon.setAttribute("data-lucide", body.classList.contains("light-mode") ? "sun" : "moon");
+      lucide.createIcons();
+    }
+  </script>
 </body>
 </html>
