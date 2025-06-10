@@ -192,85 +192,92 @@ button.send:hover {
   <script>
   document.getElementById("tahun").textContent = new Date().getFullYear();
   </script>
-  <script>
+<script>
+  lucide.createIcons();
+
+  function toggleMode() {
+    document.body.classList.toggle("light-mode");
+    const icon = document.getElementById("iconMode");
+    icon.setAttribute("data-lucide", document.body.classList.contains("light-mode") ? "sun" : "moon");
     lucide.createIcons();
+  }
 
-    function toggleMode() {
-      document.body.classList.toggle("light-mode");
-      const icon = document.getElementById("iconMode");
-      icon.setAttribute("data-lucide", document.body.classList.contains("light-mode") ? "sun" : "moon");
-      lucide.createIcons();
+  function showPopup(message, success = true) {
+    const popup = document.getElementById("popup");
+    const msg = document.getElementById("popupMessage");
+    msg.textContent = message;
+    popup.className = "popup " + (success ? "success" : "error");
+    popup.style.display = "flex";
+
+    clearTimeout(popup.timer);
+    popup.timer = setTimeout(() => {
+      popup.style.display = "none";
+    }, 5000);
+  }
+
+  function tutupPopup() {
+    document.getElementById("popup").style.display = "none";
+  }
+
+  function kirim() {
+    const nama = document.getElementById("nama").value.trim();
+    const kontak = document.getElementById("kontak").value.trim();
+    const pesan = document.getElementById("input").value.trim();
+
+    if (!nama || !kontak || !pesan) {
+      showPopup("Isi semua field dulu yaa!", false);
+      return;
     }
 
-    function showPopup(message, success = true) {
-      const popup = document.getElementById("popup");
-      const msg = document.getElementById("popupMessage");
-      msg.textContent = message;
-      popup.className = "popup " + (success ? "success" : "error");
-      popup.style.display = "flex";
-
-      clearTimeout(popup.timer);
-      popup.timer = setTimeout(() => {
-        popup.style.display = "none";
-      }, 5000);
-    }
-
-    function tutupPopup() {
-      document.getElementById("popup").style.display = "none";
-    }
-
-    function kirim() {
-      const nama = document.getElementById("nama").value.trim();
-      const kontak = document.getElementById("kontak").value.trim();
-      const pesan = document.getElementById("input").value.trim();
-
-      if (!nama || !kontak || !pesan) {
-        showPopup("Isi semua field dulu yaa!", false);
+    if (kontak.includes("@")) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(kontak)) {
+        showPopup("Format email tidak valid!", false);
         return;
       }
+    } else {
+      const phoneRegex = /^\+\d{1,4}\d{6,15}$/;
+      if (!phoneRegex.test(kontak)) {
+        showPopup("Nomor HP harus diawali +62, +60, dll ya!", false);
+        return;
+      }
+    }
 
-      if (kontak.includes("@")) {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(kontak)) {
-    showPopup("Format email tidak valid!", false);
-    return;
-  }
-} else {
-  const phoneRegex = /^\+\d{1,4}\d{6,15}$/;
-  if (!phoneRegex.test(kontak)) {
-    showPopup("Nomor HP harus diawali +62, +60, dll ya!", false);
-    return;
-  }
-}
+    const tanggal = new Date().toLocaleString('id-ID', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
 
-      const tanggal = new Date().toLocaleString('id-ID', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
+    fetch("/data/webhook.json")
+      .then(res => res.json())
+      .then(data => {
+        const webhookURL = data.webhook_url;
 
-      fetch("https://discord.com/api/webhooks/1374801368136548454/GG1eMFKqOhUhnNGZtxyBHTSJ-n37ZowJkARwIXbTKkrA9lAZDaijNR91Ou-gDwMA_nKx", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          embeds: [
-            {
-              title: "Pendapat Baru",
-              color: 0x6C5CE7,
-              fields: [
-                { name: "Nama", value: nama || "Anonim", inline: true },
-                { name: "Kontak", value: kontak, inline: true },
-                { name: "Pesan", value: pesan },
-                { name: "Tanggal", value: tanggal }
-              ],
-              footer: { text: "elaina.cloud" },
-              timestamp: new Date().toISOString()
-            }
-          ]
-        })
-      }).then(res => {
+        return fetch(webhookURL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            embeds: [
+              {
+                title: "Pendapat Baru",
+                color: 0x6C5CE7,
+                fields: [
+                  { name: "Nama", value: nama || "Anonim", inline: true },
+                  { name: "Kontak", value: kontak, inline: true },
+                  { name: "Pesan", value: pesan },
+                  { name: "Tanggal", value: tanggal }
+                ],
+                footer: { text: "elaina.cloud" },
+                timestamp: new Date().toISOString()
+              }
+            ]
+          })
+        });
+      })
+      .then(res => {
         if (res.ok) {
           showPopup("Pendapatmu terkirim!");
           document.getElementById("nama").value = "";
@@ -279,12 +286,12 @@ button.send:hover {
         } else {
           showPopup("Gagal kirim pendapat!", false);
         }
-      }).catch(err => {
+      })
+      .catch(err => {
         console.error(err);
         showPopup("Terjadi kesalahan jaringan.", false);
       });
-    }
-  </script>
-  </body>
+  }
+</script>
+</body>
 </html>
-
